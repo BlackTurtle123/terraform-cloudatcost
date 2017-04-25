@@ -7,6 +7,7 @@ github.com/masayukioguni/go-cloudatcost/cloudatcost
 github.com/Blackturtle123/go-cloudatcost/cloudatcost
 
 ## Example
+```
 provider "cloudatcost" {
   api_key     = "key"
   login       = "email"
@@ -27,3 +28,4 @@ resource "cloudatcost_machine" "serverb" {
   "os"="26",
   "datacenter"="Developer-DC-2",
 }
+```
