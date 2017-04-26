@@ -18,7 +18,7 @@ resource "cloudatcost_machine" "servera" {
   "ram"="512",
   "storage"="10",
   "os"="26",
-  "datacenter"="Developer-DC-2",
+  "datacenter"="Developer-DC-3",
 }
 
 resource "cloudatcost_machine" "serverb" {
@@ -27,5 +27,8 @@ resource "cloudatcost_machine" "serverb" {
   "storage"="20",
   "os"="26",
   "datacenter"="Developer-DC-2",
+  //Without terraform makes those at the same time
+  //This making it impossible for the API to know which is which server
+  depends_on = ["cloudatcost_machine.servera"]
 }
 ```

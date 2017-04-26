@@ -3,7 +3,6 @@ package main
 
 import (
 	//"strconv"
-	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
@@ -82,8 +81,6 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 func createFunc(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudatcost.Client)
-	fmt.Println(client)
-
 	_, _, err := client.CloudProService.Create(&cloudatcost.CreateServerOptions{
 		Cpu: d.Get("cpu").(string),
 		Ram:  d.Get("ram").(string),
@@ -99,18 +96,21 @@ func createFunc(d *schema.ResourceData, meta interface{}) error {
 	listservers,_, err := client.ServersService.List()
 
 	serverLength := len(listservers)
+	//need fix both servers are created at the same time
+	//impossible to know which server is which one
 	server := listservers[serverLength-1]
+	d.SetId(server.Sid)
 	if err != nil {
 		return err
 	}
 
 
 	//d.SetId(strconv.Itoa(server.Sid))
-	d.SetId(server.Sid)
 	return nil
 }
 
 func readFunc(d *schema.ResourceData, meta interface{}) error {
+
 	return nil
 }
 
@@ -119,5 +119,13 @@ func updateFunc(d *schema.ResourceData, meta interface{}) error {
 }
 
 func deleteFunc(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*cloudatcost.Client)
+
+	_, _, err := client.CloudProService.Delete(d.Id())
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
