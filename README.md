@@ -3,8 +3,10 @@ cloudatcost provider terraform
 
 ## References
 https://github.com/cloudatcost/api
-github.com/masayukioguni/go-cloudatcost/cloudatcost
-github.com/Blackturtle123/go-cloudatcost/cloudatcost
+
+https://github.com/masayukioguni/go-cloudatcost/cloudatcost
+
+https://github.com/Blackturtle123/go-cloudatcost/cloudatcost
 
 ## Example
 ```
