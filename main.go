@@ -3,6 +3,7 @@ package main
 
 import (
 	//"strconv"
+	"strings"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
@@ -68,6 +69,10 @@ func providerResources() map[string]*schema.Resource {
 					Type:     schema.TypeString,
 					Required: true,
 				},
+				"runmode": &schema.Schema{
+					Type:     schema.TypeString,
+					Required: true,
+				},
 			},
 		},
 	}
@@ -101,6 +106,10 @@ func createFunc(d *schema.ResourceData, meta interface{}) error {
 	server := listservers[serverLength-1]
 	d.SetId(server.Sid)
 	if err != nil {
+		return err
+	}
+	_,_,error := client.RunModeService.Mode(server.Sid,strings.ToLower(d.Get("runmode").(string)))
+	if error != nil {
 		return err
 	}
 
