@@ -124,7 +124,23 @@ func readFunc(d *schema.ResourceData, meta interface{}) error {
 }
 
 func updateFunc(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*cloudatcost.Client)
+	d.Partial(true)
+
+	if d.HasChange("runmode"){
+		d.SetPartial("runmode")
+		_,_,err := client.RunModeService.Mode(d.Id(),strings.ToLower(d.Get("runmode").(string)))
+		if err != nil {
+			return err
+		}
+	}
+	if d.HasChange("cpu") == true  || d.HasChange("ram") == true || d.HasChange("storage") == true || d.HasChange("os") == true{
+		deleteFunc(d,meta)
+		createFunc(d,meta)
+	}
+
+	d.Partial(false)
+	return readFunc(d,meta)
 }
 
 func deleteFunc(d *schema.ResourceData, meta interface{}) error {
