@@ -9,8 +9,11 @@ https://github.com/masayukioguni/go-cloudatcost/cloudatcost
 https://github.com/Blackturtle123/go-cloudatcost/cloudatcost
 ## Features
 Creating vm.
+
 Choosing what run mode.
+
 Update run mode.
+
 Update vm, vm will be recreated.
 ## Example
 ```
