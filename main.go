@@ -71,7 +71,11 @@ func providerResources() map[string]*schema.Resource {
 				},
 				"runmode": &schema.Schema{
 					Type:     schema.TypeString,
-					Required: true,
+					Optional: true,
+				},
+				"label": &schema.Schema{
+					Type:     schema.TypeString,
+					Optional: true,
 				},
 			},
 		},
@@ -110,10 +114,15 @@ func createFunc(d *schema.ResourceData, meta interface{}) error {
 	}
 	_,_,error := client.RunModeService.Mode(server.Sid,strings.ToLower(d.Get("runmode").(string)))
 	if error != nil {
-		return err
+		return error
 	}
 
-
+	if d.Get("label") != nil && d.Get("label").(string) != "" {
+		_,_, errr := client.ServersService.Rename(server.Sid, d.Get("label").(string))
+		if errr != nil {
+			return errr
+		}
+	}
 	//d.SetId(strconv.Itoa(server.Sid))
 	return nil
 }
@@ -127,6 +136,11 @@ func updateFunc(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudatcost.Client)
 	d.Partial(true)
 
+	if d.HasChange("cpu") == true  || d.HasChange("ram") == true || d.HasChange("storage") == true || d.HasChange("os") == true{
+		deleteFunc(d,meta)
+		createFunc(d,meta)
+	}
+
 	if d.HasChange("runmode"){
 		d.SetPartial("runmode")
 		_,_,err := client.RunModeService.Mode(d.Id(),strings.ToLower(d.Get("runmode").(string)))
@@ -134,10 +148,14 @@ func updateFunc(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 	}
-	if d.HasChange("cpu") == true  || d.HasChange("ram") == true || d.HasChange("storage") == true || d.HasChange("os") == true{
-		deleteFunc(d,meta)
-		createFunc(d,meta)
+	if d.HasChange("label") && d.Get("label").(string) != "" {
+		d.SetPartial("label")
+		_, _, errr := client.ServersService.Rename(d.Id(), d.Get("label").(string))
+		if errr != nil {
+			return errr
+		}
 	}
+
 
 	d.Partial(false)
 	return readFunc(d,meta)
