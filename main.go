@@ -77,6 +77,14 @@ func providerResources() map[string]*schema.Resource {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
+				"ip": &schema.Schema{
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"password": &schema.Schema{
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -123,6 +131,8 @@ func createFunc(d *schema.ResourceData, meta interface{}) error {
 			return errr
 		}
 	}
+	d.Set("ip",server.IP)
+	d.Set("password",server.Rootpass)
 	//d.SetId(strconv.Itoa(server.Sid))
 	return nil
 }
