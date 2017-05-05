@@ -22,7 +22,7 @@ provider "cloudatcost" {
   login       = "email"
 }
 
-resource "cloudatcost_machine" "servera" {
+resource "cloudatcost_instance" "servera" {
   //currently not able of removing label, only updating it.
   "label"="serverd",
   "cpu"="1",
@@ -30,18 +30,18 @@ resource "cloudatcost_machine" "servera" {
   "storage"="10",
   "os"="26",
   "datacenter"="Developer-DC-3",
-  "runmode"="NorMal",
+  "runmode"="safe",
 }
 
-resource "cloudatcost_machine" "serverb" {
+resource "cloudatcost_instance" "serverb" {
   "cpu"="1",
   "ram"="512",
   "storage"="20",
   "os"="26",
   "datacenter"="Developer-DC-2",
-  "runmode"="nOrmal"
+  "runmode"="normal"
   //Without depends terraform makes those at the same time
   //This making it impossible for the API to know which is which server
-  depends_on = ["cloudatcost_machine.servera"]
+  depends_on = ["cloudatcost_instance.servera"]
 }
 ```
