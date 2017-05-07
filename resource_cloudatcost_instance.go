@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"strings"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/BlackTurtle123/go-cloudatcost/cloudatcost"
@@ -60,11 +61,16 @@ func resourceCloudInstance() *schema.Resource{
 
 func resourceCloudInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudatcost.Client)
-	_, _, err := client.CloudProService.Create(&cloudatcost.CreateServerOptions{
+	imageID, err := resourceCloudMapImageToId(d,meta)
+
+	if err != nil {
+		return err
+	}
+	_, _, err = client.CloudProService.Create(&cloudatcost.CreateServerOptions{
 		Cpu: d.Get("cpu").(string),
 		Ram:  d.Get("ram").(string),
 		Storage:  d.Get("storage").(string),
-		OS:  d.Get("os").(string),
+		OS:  imageID,
 		Datacenter: d.Get("datacenter").(string) },
 	)
 
@@ -99,7 +105,6 @@ func resourceCloudInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	d.Set("ip",server.IP)
 	d.Set("password",server.Rootpass)
 	d.Set("status",server.Status)
-	//d.SetId(strconv.Itoa(server.Sid))
 	return nil
 }
 
@@ -116,7 +121,7 @@ func resourceCloudInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("storage",server.Storage)
-	d.Set("os",server.Packageid)
+	d.Set("os",server.Template)
 	d.Set("cpu",server.CPU)
 	d.Set("ram",server.RAM)
 	d.Set("runmode",strings.ToLower(server.Mode))
@@ -167,4 +172,30 @@ func resourceCloudInstanceDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	return nil
+}
+
+func resourceCloudMapImageToId( d *schema.ResourceData, meta interface{}) (string, error){
+	client := meta.(*cloudatcost.Client)
+	var s []cloudatcost.ListTemplate
+	s,_,_ = client.ListTemplatesService.ListTemplates()
+	osImage := d.Get("os").(string)
+	//TODO
+	//get id from selected image name if exists
+	//if not return error containing all images, if exists, return id
+	for i :=0; i< len(s); i++{
+		if s[i].Name == osImage{
+			return s[i].Ce_id, nil
+			break
+		}
+
+	}
+	var buffer bytes.Buffer
+	buffer.WriteString("'")
+	for i :=0; i< len(s); i++{
+
+		buffer.WriteString(s[i].Name)
+		buffer.WriteString("',")
+	}
+
+	return "", &osImageError{osImage,buffer.String()}
 }

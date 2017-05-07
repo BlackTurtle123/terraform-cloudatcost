@@ -28,8 +28,7 @@ resource "cloudatcost_instance" "servera" {
   "cpu"="1",
   "ram"="512",
   "storage"="10",
-  "os"="26",
-  "datacenter"="Developer-DC-3",
+  "os"="CentOS 6.7 64bit",
   "runmode"="safe",
 }
 
@@ -37,8 +36,7 @@ resource "cloudatcost_instance" "serverb" {
   "cpu"="1",
   "ram"="512",
   "storage"="20",
-  "os"="26",
-  "datacenter"="Developer-DC-2",
+  "os"="CentOS 6.7 64bit",
   "runmode"="normal"
   //Without depends terraform makes those at the same time
   //This making it impossible for the API to know which is which server
