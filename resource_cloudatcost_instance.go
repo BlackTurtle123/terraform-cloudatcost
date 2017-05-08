@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"strings"
 	"github.com/hashicorp/terraform/helper/schema"
+	"strconv"
 	"github.com/BlackTurtle123/go-cloudatcost/cloudatcost"
 )
 
-func resourceCloudInstance() *schema.Resource{
+func resourceCloudInstance() *schema.Resource {
 	return &schema.Resource{
 		SchemaVersion: 1,
 		Create:        resourceCloudInstanceCreate,
 		Read:          resourceCloudInstanceRead,
 		Update:        resourceCloudInstanceUpdate,
 		Delete:        resourceCloudInstanceDelete,
-		Schema: map[string]*schema.Schema{ // List of supported configuration fields for your resource
+		Schema: map[string]*schema.Schema{// List of supported configuration fields for your resource
 			"storage": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
@@ -61,7 +62,43 @@ func resourceCloudInstance() *schema.Resource{
 
 func resourceCloudInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudatcost.Client)
-	imageID, err := resourceCloudMapImageToId(d,meta)
+	res, _, err := client.CloudProService.Resources()
+	uCPU, _ := strconv.Atoi(res.Used.CPU)
+	tCPU, _ := strconv.Atoi(res.Total.CPU)
+	uStorage, _ := strconv.Atoi(res.Used.Storage)
+	tStorage, _ := strconv.Atoi(res.Total.Storage)
+	uRam, _ := strconv.Atoi(res.Used.Ram)
+	tRam, _ := strconv.Atoi(res.Total.Ram)
+	if tCPU != 0 {
+
+		remainingCpu := tCPU - uCPU
+		remainingRam := tRam - uRam
+		remainingStorage := tStorage - uStorage
+		ram, _ := strconv.Atoi(d.Get("ram").(string))
+		storage, _ := strconv.Atoi(d.Get("storage").(string))
+		cpu, _ := strconv.Atoi(d.Get("cpu").(string))
+		if remainingRam < ram || remainingCpu < cpu || remainingStorage < storage {
+			return &notEnoughResources{d.Get("cpu").(string),
+				d.Get("ram").(string),
+				d.Get("storage").(string),
+				strconv.Itoa(remainingCpu),
+				strconv.Itoa(remainingRam),
+				strconv.Itoa(remainingStorage),
+			}
+		}
+	} else {
+		return &notEnoughResources{d.Get("cpu").(string),
+			d.Get("ram").(string),
+			d.Get("storage").(string),
+			"0",
+			"0",
+			"0",
+		}
+	}
+	if err != nil {
+		return err
+	}
+	imageID, err := resourceCloudMapImageToId(d, meta)
 
 	if err != nil {
 		return err
@@ -78,57 +115,57 @@ func resourceCloudInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	listservers,_, err := client.ServersService.List()
+	listservers, _, err := client.ServersService.List()
 
 	serverLength := len(listservers)
 	//need fix both servers are created at the same time
 	//impossible to know which server is which one
-	server := listservers[serverLength-1]
+	server := listservers[serverLength - 1]
 	d.SetId(server.Sid)
 	if err != nil {
 		return err
 	}
-	_,_,error := client.RunModeService.Mode(server.Sid,strings.ToLower(d.Get("runmode").(string)))
-	if error != nil {
-		return error
-	}else{
-		d.Set("runmode",strings.ToLower(d.Get("runmode").(string)))
+	_, _, err = client.RunModeService.Mode(server.Sid, strings.ToLower(d.Get("runmode").(string)))
+	if err != nil {
+		return err
+	} else {
+		d.Set("runmode", strings.ToLower(d.Get("runmode").(string)))
 	}
 
 	if d.Get("label") != nil && d.Get("label").(string) != "" {
-		_,_, errr := client.ServersService.Rename(server.Sid, d.Get("label").(string))
-		if errr != nil {
-			return errr
+		_, _, err = client.ServersService.Rename(server.Sid, d.Get("label").(string))
+		if err != nil {
+			return err
 		}
 	}
 
-	d.Set("ip",server.IP)
-	d.Set("password",server.Rootpass)
-	d.Set("status",server.Status)
+	d.Set("ip", server.IP)
+	d.Set("password", server.Rootpass)
+	d.Set("status", server.Status)
 	return nil
 }
 
 func resourceCloudInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudatcost.Client)
 	var server cloudatcost.ListServer
-	listservers,_, _ := client.ServersService.List()
+	listservers, _, _ := client.ServersService.List()
 
-	for i := 0; i< len(listservers); i++{
-		if listservers[i].Sid == d.Id(){
+	for i := 0; i < len(listservers); i++ {
+		if listservers[i].Sid == d.Id() {
 			server = listservers[i]
 			break
 		}
 	}
 
-	d.Set("storage",server.Storage)
-	d.Set("os",server.Template)
-	d.Set("cpu",server.CPU)
-	d.Set("ram",server.RAM)
-	d.Set("runmode",strings.ToLower(server.Mode))
-	d.Set("label",server.Lable)
-	d.Set("ip",server.IP)
-	d.Set("password",server.Rootpass)
-	d.Set("status",server.Status)
+	d.Set("storage", server.Storage)
+	d.Set("os", server.Template)
+	d.Set("cpu", server.CPU)
+	d.Set("ram", server.RAM)
+	d.Set("runmode", strings.ToLower(server.Mode))
+	d.Set("label", server.Lable)
+	d.Set("ip", server.IP)
+	d.Set("password", server.Rootpass)
+	d.Set("status", server.Status)
 
 	return nil
 }
@@ -137,14 +174,14 @@ func resourceCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*cloudatcost.Client)
 	d.Partial(true)
 
-	if d.HasChange("cpu") == true  || d.HasChange("ram") == true || d.HasChange("storage") == true || d.HasChange("os") == true{
-		resourceCloudInstanceDelete(d,meta)
-		resourceCloudInstanceCreate(d,meta)
+	if d.HasChange("cpu") == true || d.HasChange("ram") == true || d.HasChange("storage") == true || d.HasChange("os") == true {
+		resourceCloudInstanceDelete(d, meta)
+		resourceCloudInstanceCreate(d, meta)
 	}
 
 	if d.HasChange("runmode") {
 		d.SetPartial("runmode")
-		_,_,err := client.RunModeService.Mode(d.Id(),strings.ToLower(d.Get("runmode").(string)))
+		_, _, err := client.RunModeService.Mode(d.Id(), strings.ToLower(d.Get("runmode").(string)))
 		if err != nil {
 			return err
 		}
@@ -157,9 +194,8 @@ func resourceCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-
 	d.Partial(false)
-	return resourceCloudInstanceRead(d,meta)
+	return resourceCloudInstanceRead(d, meta)
 }
 
 func resourceCloudInstanceDelete(d *schema.ResourceData, meta interface{}) error {
@@ -174,28 +210,24 @@ func resourceCloudInstanceDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceCloudMapImageToId( d *schema.ResourceData, meta interface{}) (string, error){
+func resourceCloudMapImageToId(d *schema.ResourceData, meta interface{}) (string, error) {
 	client := meta.(*cloudatcost.Client)
 	var s []cloudatcost.ListTemplate
-	s,_,_ = client.ListTemplatesService.ListTemplates()
+	s, _, _ = client.ListTemplatesService.ListTemplates()
 	osImage := d.Get("os").(string)
-	//TODO
-	//get id from selected image name if exists
-	//if not return error containing all images, if exists, return id
-	for i :=0; i< len(s); i++{
-		if s[i].Name == osImage{
+	for i := 0; i < len(s); i++ {
+		if s[i].Name == osImage {
 			return s[i].Ce_id, nil
 			break
 		}
-
 	}
 	var buffer bytes.Buffer
 	buffer.WriteString("'")
-	for i :=0; i< len(s); i++{
+	for i := 0; i < len(s); i++ {
 
 		buffer.WriteString(s[i].Name)
 		buffer.WriteString("',")
 	}
 
-	return "", &osImageError{osImage,buffer.String()}
+	return "", &osImageError{osImage, buffer.String()}
 }

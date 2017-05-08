@@ -15,10 +15,10 @@ func main() {
 }
 
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{ // Source https://github.com/hashicorp/terraform/blob/v0.6.6/helper/schema/provider.go#L20-L43
+	return &schema.Provider{// Source https://github.com/hashicorp/terraform/blob/v0.6.6/helper/schema/provider.go#L20-L43
 		Schema:        providerSchema(),
 		ResourcesMap:  map[string]*schema.Resource{
-			"cloudatcost_instance":		resourceCloudInstance(),
+			"cloudatcost_instance":                resourceCloudInstance(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
@@ -40,6 +40,5 @@ func providerSchema() map[string]*schema.Schema {
 }
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
-
-	return  cloudatcost.NewClient(&cloudatcost.Option{Login: d.Get("login").(string), Key: d.Get("api_key").(string)})
+	return cloudatcost.NewClient(&cloudatcost.Option{Login: d.Get("login").(string), Key: d.Get("api_key").(string)})
 }
