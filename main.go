@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/BlackTurtle123/go-cloudatcost/cloudatcost"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/BlackTurtle123/go-cloudatcost/cloudatcost"
 )
 
 func main() {
@@ -15,10 +15,10 @@ func main() {
 }
 
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{// Source https://github.com/hashicorp/terraform/blob/v0.6.6/helper/schema/provider.go#L20-L43
-		Schema:        providerSchema(),
-		ResourcesMap:  map[string]*schema.Resource{
-			"cloudatcost_instance":                resourceCloudInstance(),
+	return &schema.Provider{ // Source https://github.com/hashicorp/terraform/blob/v0.6.6/helper/schema/provider.go#L20-L43
+		Schema: providerSchema(),
+		ResourcesMap: map[string]*schema.Resource{
+			"cloudatcost_instance": resourceCloudInstance(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

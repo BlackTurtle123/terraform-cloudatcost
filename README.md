@@ -7,6 +7,8 @@ https://github.com/cloudatcost/api
 https://github.com/masayukioguni/go-cloudatcost/cloudatcost
 
 https://github.com/Blackturtle123/go-cloudatcost/cloudatcost
+
+The go-cloudatcost wrapper from masayukioguni has some old code that doesn't work anymore. The wrapper from BlackTurtle123 has the fixed code.
 ## Features
 Creating vm.
 

@@ -2,10 +2,10 @@ package main
 
 import (
 	"bytes"
-	"strings"
+	"github.com/BlackTurtle123/go-cloudatcost/cloudatcost"
 	"github.com/hashicorp/terraform/helper/schema"
 	"strconv"
-	"github.com/BlackTurtle123/go-cloudatcost/cloudatcost"
+	"strings"
 )
 
 func resourceCloudInstance() *schema.Resource {
@@ -15,7 +15,7 @@ func resourceCloudInstance() *schema.Resource {
 		Read:          resourceCloudInstanceRead,
 		Update:        resourceCloudInstanceUpdate,
 		Delete:        resourceCloudInstanceDelete,
-		Schema: map[string]*schema.Schema{// List of supported configuration fields for your resource
+		Schema: map[string]*schema.Schema{ // List of supported configuration fields for your resource
 			"storage": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
@@ -104,11 +104,11 @@ func resourceCloudInstanceCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	_, _, err = client.CloudProService.Create(&cloudatcost.CreateServerOptions{
-		Cpu: d.Get("cpu").(string),
-		Ram:  d.Get("ram").(string),
-		Storage:  d.Get("storage").(string),
-		OS:  imageID,
-		Datacenter: d.Get("datacenter").(string) },
+		Cpu:        d.Get("cpu").(string),
+		Ram:        d.Get("ram").(string),
+		Storage:    d.Get("storage").(string),
+		OS:         imageID,
+		Datacenter: d.Get("datacenter").(string)},
 	)
 
 	if err != nil {
@@ -120,7 +120,7 @@ func resourceCloudInstanceCreate(d *schema.ResourceData, meta interface{}) error
 	serverLength := len(listservers)
 	//need fix both servers are created at the same time
 	//impossible to know which server is which one
-	server := listservers[serverLength - 1]
+	server := listservers[serverLength-1]
 	d.SetId(server.Sid)
 	if err != nil {
 		return err

@@ -9,11 +9,11 @@ type osImageError struct {
 	images string
 }
 type notEnoughResources struct {
-	cpu string
-	ram string
-	storage string
-	cpuLeft string
-	ramLeft string
+	cpu         string
+	ram         string
+	storage     string
+	cpuLeft     string
+	ramLeft     string
 	storageLeft string
 }
 
